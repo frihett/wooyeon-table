@@ -71,30 +71,52 @@ window.PartView = (function () {
         <p class="small" style="opacity:.6;margin-top:8px"><span class="candle"></span>마음 따뜻한 공간, 해가 지는 선선한 저녁에 만나요</p>
       </div>
       <div class="page" style="margin-top:20px">
+        ${AUTH.enabled && AUTH.inApp() ? `<div class="card tight mb8" style="background:var(--amber-soft)"><b class="small">앱 안 브라우저에서는 구글 로그인이 막혀요</b><div class="xs muted">Safari·Chrome에서 열면 모든 로그인 방식을 쓸 수 있어요.</div><button class="btn xs soft mt8" data-act="openExternal">기본 브라우저로 열기</button></div>` : ''}
         <div class="card">
           <h3>휴대폰 번호로 시작하기</h3>
           <label class="f">휴대폰 번호</label>
-          <div class="row"><input class="input grow" inputmode="tel" placeholder="010-0000-0000" data-bind="login.phone" value="${E(d.phone || '')}" data-enter="sendCode"><button class="btn sm ${d.sent ? 'ghost' : ''}" data-act="sendCode">${d.sent ? '재전송' : '인증번호'}</button></div>
-          ${d.sent ? `<label class="f">인증번호</label><input class="input" inputmode="numeric" maxlength="6" placeholder="6자리" data-bind="login.code" value="${E(d.code || '')}" data-enter="verify"><p class="xs faint mt8">해커톤 테스트 로그인: 인증번호 <b>000000</b></p><button class="btn block mt12" data-act="verify">로그인 / 회원가입</button>` : ''}
+          <div class="row"><input class="input grow" inputmode="tel" placeholder="010-0000-0000" data-bind="login.phone" value="${E(d.phone || '')}" data-enter="sendCode"><button class="btn sm ${d.sent ? 'ghost' : ''}" data-act="sendCode" ${d.busy ? 'disabled' : ''}>${d.sent ? '재전송' : '인증번호'}</button></div>
+          ${d.sent ? `<label class="f">인증번호</label><input class="input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6자리" data-bind="login.code" value="${E(d.code || '')}" data-enter="verify">${realPhone() ? `<p class="xs faint mt8">${E(d.phone)}(으)로 문자를 보냈어요. 3분 안에 입력해주세요.</p>` : `<p class="xs faint mt8">해커톤 테스트 로그인: 인증번호 <b>000000</b></p>`}<button class="btn block mt12" data-act="verify" ${d.busy ? 'disabled' : ''}>${d.busy ? '확인 중…' : '로그인 / 회원가입'}</button>` : ''}
+          ${AUTH.enabled && (AUTH.providers.kakao || AUTH.providers.google) ? `
+          <div class="row mt16" style="gap:10px"><div style="flex:1;height:1px;background:var(--line)"></div><span class="xs faint">또는</span><div style="flex:1;height:1px;background:var(--line)"></div></div>
+          ${AUTH.providers.kakao ? `<button class="btn block mt12" style="background:#FEE500;color:rgba(0,0,0,.85)" data-act="oauth" data-p="kakao"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#000" d="M12 3C6.48 3 2 6.58 2 11c0 2.85 1.86 5.35 4.66 6.77-.15.53-.97 3.4-1 3.62 0 0-.02.17.09.24.11.06.24.01.24.01.32-.04 3.7-2.42 4.28-2.83.56.08 1.14.12 1.73.12 5.52 0 10-3.58 10-8S17.52 3 12 3z"/></svg>카카오로 시작하기</button>` : ''}
+          ${AUTH.providers.google ? `<button class="btn block mt8" style="background:#fff;color:#1f1f1f;border:1px solid #DADCE0" data-act="oauth" data-p="google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Google로 시작하기</button>` : ''}` : ''}
         </div>
-        <div class="section-title">데모 계정으로 바로 체험하기</div>
+        ${AUTH.enabled && !AUTH.showDemo ? '' : `<div class="section-title">데모 계정으로 바로 체험하기</div>
         <div class="list">
           ${demo(du.confirmed, '🕯️', '테이블 확정된 참가자', '10/22(목) 식탁 · 단체방·체크인·피드백')}
           ${demo(du.waiting, '⏳', '결제 완료 · 매칭 대기 (재방문)', '10/29 자동 매칭 대기')}
           ${demo(du.failed, '🔁', '매칭 실패 참가자', '대체 일정·보관·환불 선택')}
           <div class="li" data-act="demoNew"><div style="font-size:22px">✨</div><div class="grow"><b>처음 가입하는 참가자</b><div class="small muted">프로필 작성부터 신청·결제까지</div></div><span class="chev">›</span></div>
-        </div>
+        </div>`}
         <p class="center mt24"><a href="#/admin" class="small muted">운영자 어드민 바로가기 →</a></p>
       </div></div>`;
   }
   const normPhone = (p) => (p || '').replace(/\D/g, '');
-  A.sendCode = () => {
-    const d = App.draft.login || {};
+  const realPhone = () => AUTH.enabled && AUTH.providers.phone;
+  A.sendCode = async () => {
+    const d = (App.draft.login ||= {});
     if (!/^01\d{8,9}$/.test(normPhone(d.phone))) return App.toast('휴대폰 번호를 확인해주세요', '예: 010-1234-5678');
-    d.sent = true; App.render(); App.toast('인증번호를 보냈어요', '테스트 인증번호는 000000 이에요');
+    if (!realPhone()) { d.sent = true; App.render(); return App.toast('인증번호를 보냈어요', '테스트 인증번호는 000000 이에요'); }
+    d.busy = true; App.render();
+    try { await AUTH.sendOtp(d.phone); d.sent = true; App.toast('인증번호를 보냈어요', '문자로 받은 6자리를 입력해주세요'); }
+    catch (e) { App.toast('문자를 보내지 못했어요', AUTH.message(e)); }
+    d.busy = false; App.render();
   };
-  A.verify = () => {
+  A.oauth = async (d) => {
+    try { await AUTH.oauth(d.p); } // 성공하면 카카오/구글 로그인 페이지로 이동
+    catch (e) { App.toast('로그인을 시작하지 못했어요', AUTH.message(e)); }
+  };
+  A.openExternal = () => AUTH.openExternal();
+  A.verify = async () => {
     const d = App.draft.login || {};
+    if (realPhone()) {
+      if (!/^\d{6}$/.test(d.code || '')) return App.toast('인증번호 6자리를 입력해주세요');
+      d.busy = true; App.render();
+      try { await AUTH.verifyOtp(d.phone, d.code); } // 성공 시 AUTH가 로그인 처리
+      catch (e) { App.toast('인증에 실패했어요', AUTH.message(e)); d.busy = false; App.render(); }
+      return;
+    }
     if (d.code !== '000000') return App.toast('인증번호가 일치하지 않아요');
     const ph = normPhone(d.phone);
     let u = Object.values(st().users).find((x) => normPhone(x.phone) === ph);
@@ -110,18 +132,18 @@ window.PartView = (function () {
   function loginAs(id) { st().session.userId = id; st().session.admin = false; App.draft = {}; S.save(); const u = S.user(id); App.go(u.profileDone ? '#/home' : '#/onboard/1'); }
   A.demoLogin = (d) => loginAs(d.uid);
   A.demoNew = () => { const u = newUser(); loginAs(u.id); };
-  A.logout = () => { st().session.userId = null; S.save(); App.draft = {}; App.go('#/login'); };
+  A.logout = async () => { await AUTH.signOut(); st().session.userId = null; S.save(); App.draft = {}; App.go('#/login'); };
 
   // ═════════ 프로필 위저드 (ACC-02~05, ACC-06 재사용) ═════════
   const STEPS = ['기본 정보', '나는 이런 사람', '만나고 싶은 사람', '식사 조건', '동의'];
   function onboard(step, edit) {
     const me = S.me();
-    const p = (App.draft.p ||= { name: me.name, birthYear: me.birthYear || '', gender: me.gender, job: me.job, mbti: me.mbti, interests: me.interests.slice(), traits: me.traits.slice(), wants: me.wants.slice(), budget: me.budget.slice(), avoid: me.avoid, allergy: me.allergy, prefRegions: me.prefRegions.slice(), agree1: me.agreed, agree2: me.agreed, agree3: me.agreed, mkt: false });
+    const p = (App.draft.p ||= { name: me.name, phone: me.phone, birthYear: me.birthYear || '', gender: me.gender, job: me.job, mbti: me.mbti, interests: me.interests.slice(), traits: me.traits.slice(), wants: me.wants.slice(), budget: me.budget.slice(), avoid: me.avoid, allergy: me.allergy, prefRegions: me.prefRegions.slice(), agree1: me.agreed, agree2: me.agreed, agree3: me.agreed, mkt: false });
     const chips = (path, opts, multi = true) => `<div class="chips">${opts.map((o) => { const [v, l] = Array.isArray(o) ? o : [o, o]; const cur = p[path]; const on = multi ? cur.includes(v) : cur === v; return `<span class="chip ${on ? 'on' : ''}" data-act="chip" data-path="${path}" data-val="${E(v)}" ${multi ? 'data-multi="1"' : ''}>${E(l)}</span>`; }).join('')}</div>`;
     let body = '';
     if (step === 1) body = `
       <label class="f">이름</label><input class="input" data-bind="p.name" value="${E(p.name)}" placeholder="실명 또는 모임에서 불릴 이름">
-      <label class="f">연락처</label><input class="input" value="${E(me.phone)}" disabled>
+      <label class="f">연락처</label>${me.authProvider === "phone" || (me.phone && !me.authProvider) ? `<input class="input" value="${E(me.phone)}" disabled>` : `<input class="input" inputmode="tel" placeholder="010-0000-0000" data-bind="p.phone" value="${E(p.phone || "")}"><p class="xs faint mt8">모임 안내·긴급 연락에만 쓰여요. 다른 참가자에게는 공개되지 않아요.</p>`}
       <div class="row" style="gap:10px"><div class="grow"><label class="f">출생연도</label><select class="input" data-bind="p.birthYear"><option value="">선택</option>${Array.from({ length: 27 }, (_, i) => 2006 - i).map((y) => `<option ${+p.birthYear === y ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
       <div class="grow"><label class="f">성별</label><div class="seg">${[['F', '여성'], ['M', '남성']].map(([v, l]) => `<button class="${p.gender === v ? 'on' : ''}" data-act="chip" data-path="gender" data-val="${v}">${l}</button>`).join('')}</div></div></div>
       <label class="f">직업 (구체적으로)</label><input class="input" data-bind="p.job" value="${E(p.job)}" placeholder="예) 마케터, 개발자, 간호사">
@@ -157,7 +179,7 @@ window.PartView = (function () {
   };
   A.obNext = (d) => {
     const p = App.draft.p, step = +d.step, miss = [];
-    if (step === 1) { if (!p.name?.trim()) miss.push('이름'); if (!p.birthYear) miss.push('출생연도'); if (!p.gender) miss.push('성별'); if (!p.job?.trim()) miss.push('직업'); if (!p.prefRegions.length) miss.push('지역'); }
+    if (step === 1) { if (!p.name?.trim()) miss.push('이름'); if (!/^01\d{8,9}$/.test((p.phone || '').replace(/\D/g, ''))) miss.push('연락처'); if (!p.birthYear) miss.push('출생연도'); if (!p.gender) miss.push('성별'); if (!p.job?.trim()) miss.push('직업'); if (!p.prefRegions.length) miss.push('지역'); }
     if (step === 2) { if (!p.mbti) miss.push('MBTI'); if (!p.interests.length) miss.push('관심사'); if (!p.traits.length) miss.push('나의 성향'); }
     if (step === 3 && !p.wants.length) miss.push('만나고 싶은 사람');
     if (step === 4 && !p.budget.length) miss.push('식사 예산');
@@ -165,9 +187,9 @@ window.PartView = (function () {
     if (miss.length) return App.toast('필수 항목을 확인해주세요', miss.join(', '));
     if (step < STEPS.length) return App.go(`#/onboard/${step + 1}${d.edit ? '?edit=1' : ''}`);
     const me = S.me();
-    Object.assign(me, { name: p.name.trim(), birthYear: +p.birthYear, gender: p.gender, job: p.job.trim(), mbti: p.mbti, interests: p.interests, traits: p.traits, wants: p.wants, budget: p.budget, avoid: p.avoid || '', allergy: p.allergy || '', prefRegions: p.prefRegions, agreed: true, profileDone: true });
+    Object.assign(me, { name: p.name.trim(), phone: p.phone, birthYear: +p.birthYear, gender: p.gender, job: p.job.trim(), mbti: p.mbti, interests: p.interests, traits: p.traits, wants: p.wants, budget: p.budget, avoid: p.avoid || '', allergy: p.allergy || '', prefRegions: p.prefRegions, agreed: true, profileDone: true });
     S.audit(me.name, d.edit ? '프로필 수정' : '프로필 등록', '');
-    delete App.draft.p; S.commit();
+    delete App.draft.p; S.commit(); AUTH.saveProfile(me);
     App.toast(d.edit ? '프로필을 저장했어요' : `${given(me.name)}님, 환영해요!`, d.edit ? '' : '이제 참가할 날짜를 골라볼까요?');
     App.go(d.edit ? '#/me' : '#/apply');
   };
@@ -565,5 +587,5 @@ window.PartView = (function () {
       default: return home();
     }
   }
-  return { render, L, badge, lbl, given, ageBand, avatar };
+  return { render, L, badge, lbl, given, ageBand, avatar, newUser, loginAs };
 })();
