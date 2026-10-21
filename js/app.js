@@ -123,6 +123,7 @@ window.App = (function () {
     window.addEventListener('hashchange', () => { app.modal = null; render(); });
     if (!location.hash) location.hash = S.st.session.userId ? '#/home' : '#/login';
     render();
+    window.AUTH && AUTH.init().catch((e) => console.warn("auth init", e));
   }
 
   return { A, app, go, render, toast, openModal, closeModal, start, get draft() { return app.draft; }, set draft(v) { app.draft = v; } };
